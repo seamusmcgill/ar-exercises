@@ -9,10 +9,20 @@ class Store < ActiveRecord::Base
   validates :annual_revenue, numericality: { greater_than: 0, message: "Must have positive revenue" }
 
   validate :must_carry_womens_or_mens_apparel
+  before_destroy :check_employees, prepend: true
+
+  private
 
   def must_carry_womens_or_mens_apparel
     if !womens_apparel && !mens_apparel
       errors.add(:womens_apparel, "Must sell one")
+    end
+  end
+
+  def check_employees
+    if Employee.where(store_id: self.id).count >= 1
+      errors.add(:employees, "Can't delete store with more than one employee")
+      return false
     end
   end
 
